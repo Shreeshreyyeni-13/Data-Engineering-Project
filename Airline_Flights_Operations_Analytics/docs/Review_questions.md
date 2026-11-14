@@ -2,6 +2,7 @@
 
 This section explains the important technical and business decisions made during the Airline Flight Operations Analytics project.
 
+
 ### 1. Why do we keep the raw data in Bronze instead of cleaning the file directly?
 We keep the original data in the Bronze layer to preserve the source data without losing any information.
 **Reasons:**
@@ -11,6 +12,7 @@ We keep the original data in the Bronze layer to preserve the source data withou
 - Provides traceability throughout the data pipeline.
 The Bronze layer stores raw data, the Silver layer cleans and validates it, and the Gold layer prepares business-ready summary tables.
 
+
 ### 2. Why is a negative delay accepted, but a flight with more passengers than seats rejected?
 A negative delay means that a flight departed earlier than its scheduled departure time. It is valid data and is considered an On Time flight.
 However, when the number of passengers exceeds the aircraft's seat capacity, it violates a business rule and is treated as invalid data.
@@ -18,6 +20,7 @@ However, when the number of passengers exceeds the aircraft's seat capacity, it 
 - Negative delay: Accepted and classified as On Time.
 - Passengers greater than seat capacity: Rejected.
 - Negative average fare: Rejected.
+- 
 
 ### 3. Why can `flight_id` find duplicates but `flight_number` cannot?
 `flight_id` uniquely identifies an individual flight on a particular day, whereas `flight_number` can be reused by an airline on different dates.
@@ -28,6 +31,7 @@ However, when the number of passengers exceeds the aircraft's seat capacity, it 
 | FL400025 | SJ-472 | 2025-07-12 |
 These are two different flights even though they have the same flight number.
 Therefore, `flight_id` is used to identify duplicate flight records because it is unique for each flight.
+
 
 ### 4. How does `TIMESTAMPDIFF` fill a blank delay, and what happens if you swap the two timestamps?
 `TIMESTAMPDIFF` calculates the time difference between two timestamps in the specified unit.
@@ -53,6 +57,7 @@ COALESCE(
 )
 ```
 
+
 ### 5. Why do we calculate load factor as SUM(passengers) ÷ SUM(seats) instead of averaging each flight's load factor?
 We calculate the overall load factor using total passengers divided by total available seats because different flights may have different seat capacities.
 This gives us a more accurate overall seat-occupancy percentage.
@@ -69,6 +74,7 @@ Correct overall load factor:
 ```
 A simple average of the two flight percentages would give 57.5%, which does not accurately represent the overall seat occupancy.
 
+
 ### 6. Why do we multiply by 100.0 and not 100 when calculating percentages?
 We use `100.0` to encourage decimal arithmetic and preserve fractional percentage values during calculations.
 **SQL example:**
@@ -79,6 +85,7 @@ ROUND(
 ) AS load_factor_pct
 ```
 This helps avoid unintended integer arithmetic and supports more accurate percentage calculations.
+
 
 ### 7. Which airline has the best on-time performance, and what is the most common delay reason?
 To identify the airline with the best on-time performance, we use the `gold_airline_summary` table.
@@ -105,6 +112,7 @@ LIMIT 1;
 ```
 These queries help identify the airline with the highest on-time percentage and the most frequent reason for flight delays.
 *Note: The actual airline name, on-time percentage, and most common delay reason should be added after executing these queries and verifying the results.*
+
 
 ### 8. Which dashboard tool did you choose, and why?
 The project supports two dashboard options: Databricks AI/BI Dashboard and Power BI.
