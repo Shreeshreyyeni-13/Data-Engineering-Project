@@ -1,10 +1,10 @@
-## Data Quality Rules and Validation
+##  Data Quality Rules and Validation
 
 Data quality is an important part of the Airline Flight Operations Analytics project. The raw dataset contains duplicate records, missing values, inconsistent text formats, invalid passenger counts, and negative fares.
 
 To ensure reliable analysis, the following data quality rules are applied during the Silver layer transformation.
 
-### Data Quality Rules
+### 9.1 Data Quality Rules
 
 | No. | Data Quality Issue | Validation / Cleaning Rule | Action Taken |
 |---|---|---|---|
@@ -82,10 +82,11 @@ CASE
     ELSE 'Major Delay'
 END AS delay_category
 ```
+
 A negative delay is valid and represents an early departure. It is classified as On Time.
-  
 
 ###  Data Quality Validation Checks
+
 After applying the cleaning rules, the following checks are performed to validate the Silver and Gold data.
 
 | Validation Check | Expected Result |
@@ -103,6 +104,7 @@ After applying the cleaning rules, the following checks are performed to validat
 | Reconciliation | Bronze rows = Clean rows + Rejected rows + Duplicates removed |
 
 **Note:** The row counts and zero-issue values above are project validation targets, not confirmed execution results. Actual results must be verified after running the Databricks pipeline.
+
 
 
 **Key Takeaway:** Data quality rules help transform inconsistent raw airline data into reliable, structured, and business-ready information using the Medallion Architecture.
