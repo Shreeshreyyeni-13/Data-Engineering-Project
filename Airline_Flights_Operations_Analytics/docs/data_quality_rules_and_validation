@@ -4,7 +4,7 @@ Data quality is an important part of the Airline Flight Operations Analytics pro
 
 To ensure reliable analysis, the following data quality rules are applied during the Silver layer transformation.
 
-### 9.1 Data Quality Rules
+###  Data Quality Rules
 
 | No. | Data Quality Issue | Validation / Cleaning Rule | Action Taken |
 |---|---|---|---|
