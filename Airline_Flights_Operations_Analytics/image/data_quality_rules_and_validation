@@ -1,0 +1,108 @@
+## 9. Data Quality Rules and Validation
+
+Data quality is an important part of the Airline Flight Operations Analytics project. The raw dataset contains duplicate records, missing values, inconsistent text formats, invalid passenger counts, and negative fares.
+
+To ensure reliable analysis, the following data quality rules are applied during the Silver layer transformation.
+
+### 9.1 Data Quality Rules
+
+| No. | Data Quality Issue | Validation / Cleaning Rule | Action Taken |
+|---|---|---|---|
+| 1 | Duplicate flight records | Check duplicate `flight_id` values. | Keep only one record using `SELECT DISTINCT`. |
+| 2 | Extra spaces | Check airline, origin city, destination city, and delay reason values. | Remove extra spaces using `TRIM()`. |
+| 3 | Inconsistent text formats | Check mixed uppercase and lowercase values. | Standardize text using `INITCAP()`. |
+| 4 | Missing airline | Check NULL or blank airline values. | Replace missing values with `'Unknown'` using `COALESCE()`. |
+| 5 | Missing delay reason | Check NULL or blank delay reason values. | Replace missing values with `'Unknown'`. |
+| 6 | Missing delay minutes | Check NULL values in `delay_minutes`. | Calculate delay using `TIMESTAMPDIFF()`. |
+| 7 | Missing ticket revenue | Check NULL values in `ticket_revenue`. | Calculate using `passengers * avg_fare`. |
+| 8 | Missing aircraft ID | Check NULL values in `aircraft_id`. | Retain the record without changing the missing value. |
+| 9 | Invalid passenger count | Check whether passengers are between 0 and seat capacity. | Reject records with negative passengers or passengers exceeding seat capacity. |
+| 10 | Negative average fare | Check whether `avg_fare` is greater than or equal to 0. | Reject records with negative fares. |
+| 11 | Delay classification | Check delay minutes for every clean flight. | Categorize flights as On Time, Minor Delay, or Major Delay. |
+
+### 9.2 Data Transformation Logic
+
+**1. Remove Duplicate Records**
+
+```sql
+SELECT DISTINCT *
+FROM bronze_airline_flights;
+```
+
+**2. Standardize Text Values**
+
+```sql
+INITCAP(TRIM(airline)) AS airline,
+INITCAP(TRIM(origin_city)) AS origin_city,
+INITCAP(TRIM(destination_city)) AS destination_city
+```
+
+**3. Handle Missing Values**
+
+```sql
+COALESCE(airline, 'Unknown') AS airline
+```
+
+```sql
+COALESCE(
+    delay_minutes,
+    TIMESTAMPDIFF(
+        MINUTE,
+        scheduled_departure,
+        actual_departure
+    )
+) AS delay_minutes
+```
+
+```sql
+COALESCE(
+    ticket_revenue,
+    passengers * avg_fare
+) AS ticket_revenue
+```
+
+**4. Validate Passenger Count and Average Fare**
+
+```sql
+passengers BETWEEN 0 AND seat_capacity
+```
+
+```sql
+avg_fare >= 0
+```
+
+Records that violate these conditions are excluded from the clean Silver table and retained separately in the rejected table with a rejection reason.
+
+**5. Create Delay Categories**
+
+```sql
+CASE
+    WHEN delay_minutes <= 15 THEN 'On Time'
+    WHEN delay_minutes <= 60 THEN 'Minor Delay'
+    ELSE 'Major Delay'
+END AS delay_category
+```
+A negative delay is valid and represents an early departure. It is classified as On Time.
+  
+
+### 9.3 Data Quality Validation Checks
+After applying the cleaning rules, the following checks are performed to validate the Silver and Gold data.
+
+| Validation Check | Expected Result |
+|---|---|
+| Bronze row count | 1,365 rows |
+| Duplicate flight IDs in clean data | 0 |
+| Missing airline values in clean data | 0 |
+| Missing delay minutes in clean data | 0 |
+| Missing ticket revenue in clean data | 0 |
+| Passengers greater than seat capacity | 0 in clean data |
+| Negative passenger counts | 0 in clean data |
+| Negative average fares | 0 in clean data |
+| Missing delay categories | 0 in clean data |
+| Rejected records | Stored separately with rejection reasons |
+| Reconciliation | Bronze rows = Clean rows + Rejected rows + Duplicates removed |
+
+**Note:** The row counts and zero-issue values above are project validation targets, not confirmed execution results. Actual results must be verified after running the Databricks pipeline.
+
+
+**Key Takeaway:** Data quality rules help transform inconsistent raw airline data into reliable, structured, and business-ready information using the Medallion Architecture.
